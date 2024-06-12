@@ -1,0 +1,16 @@
+package Implementation;
+
+public class MusicPlayer {
+    private String currentTrack;
+    private boolean isPlaying;
+
+    public void turnOn() {
+        isPlaying = true;
+        // 음악 재생 코드
+    }
+
+    public void turnOff() {
+        isPlaying = false;
+        // 음악 중지 코드
+    }
+}
