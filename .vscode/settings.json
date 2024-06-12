@@ -1,0 +1,9 @@
+{
+    "java.project.sourcePaths": [
+        ".",
+        "Implementation\\src"
+    ],
+    "java.project.referencedLibraries": [
+        "c:\\Program Files\\JLayer1.0.1\\jl1.0.1.jar"
+    ]
+}

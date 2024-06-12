@@ -1,39 +1,37 @@
 package Implementation;
 
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
-
-import java.io.BufferedInputStream;
-import java.io.InputStream;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.IOException;
 import java.net.URL;
 
 public class MusicPlayer {
     private String currentTrack;
-    private boolean isPlaying;
-    private Player player;
+    private Clip clip;
 
     public void setTrack(String trackUrl) {
         this.currentTrack = trackUrl;
     }
 
     public void turnOn() {
-        isPlaying = true;
-        new Thread(() -> {
-            try {
-                InputStream is = new URL(currentTrack).openStream();
-                BufferedInputStream bis = new BufferedInputStream(is);
-                player = new Player(bis);
-                player.play();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        try {
+            URL url = new URL(currentTrack);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
     }
 
     public void turnOff() {
-        isPlaying = false;
-        if (player != null) {
-            player.close();
+        if (clip != null) {
+            clip.stop();
+            clip.close();
         }
     }
 }

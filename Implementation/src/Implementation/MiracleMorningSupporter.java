@@ -68,6 +68,10 @@ public class MiracleMorningSupporter {
     }
 
     public void runRoutine(String routineName) {
+        if (routineName == null || routineName.isEmpty()) {
+            return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+        }
+
         for (Routine routine : routines) {
             if (routine.getName().equals(routineName)) {
                 currentRunningRoutine = routine;
@@ -168,7 +172,7 @@ public class MiracleMorningSupporter {
         mainPanel.add(scrollPane, BorderLayout.CENTER); // 텍스트 영역을 가운데로 이동
 
         // Add Routine Panel
-        addRoutinePanel.setLayout(new GridLayout(7, 2, 10, 10)); // 레이아웃 행 수 조정
+        addRoutinePanel.setLayout(new GridLayout(12, 1, 10, 10)); // 기본 레이아웃으로 변경
         JTextField routineNameField = new JTextField();
         JTextField session1NameField = new JTextField();
         JTextField session1DurationField = new JTextField();
@@ -227,24 +231,24 @@ public class MiracleMorningSupporter {
         editRoutinePanel.add(new JLabel("Routine Name"));
         editRoutinePanel.add(editRoutineNameField);
         editRoutinePanel.add(new JLabel("Session 1 Name"));
+        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession1NameField);
-        editRoutinePanel.add(new JLabel("Session 1 Duration (seconds)"));
         editRoutinePanel.add(editSession1DurationField);
         editRoutinePanel.add(new JLabel("Session 2 Name"));
+        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession2NameField);
-        editRoutinePanel.add(new JLabel("Session 2 Duration (seconds)"));
         editRoutinePanel.add(editSession2DurationField);
         editRoutinePanel.add(new JLabel("Session 3 Name"));
+        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession3NameField);
-        editRoutinePanel.add(new JLabel("Session 3 Duration (seconds)"));
         editRoutinePanel.add(editSession3DurationField);
         editRoutinePanel.add(new JLabel("Session 4 Name"));
+        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession4NameField);
-        editRoutinePanel.add(new JLabel("Session 4 Duration (seconds)"));
         editRoutinePanel.add(editSession4DurationField);
         editRoutinePanel.add(new JLabel("Session 5 Name"));
+        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession5NameField);
-        editRoutinePanel.add(new JLabel("Session 5 Duration (seconds)"));
         editRoutinePanel.add(editSession5DurationField);
         editRoutinePanel.add(saveEditRoutineButton);
         editRoutinePanel.add(backButton3);
@@ -293,10 +297,50 @@ public class MiracleMorningSupporter {
             }
         });
 
+        saveRoutineButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = routineNameField.getText();
+                if (name.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Routine name is required.", "Save Routine Failed", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Routine newRoutine = new Routine(name);
+                JTextField[] sessionNameFields = { session1NameField, session2NameField, session3NameField, session4NameField, session5NameField };
+                JTextField[] sessionDurationFields = { session1DurationField, session2DurationField, session3DurationField, session4DurationField, session5DurationField };
+                for (int i = 0; i < sessionNameFields.length; i++) {
+                    if (!sessionDurationFields[i].getText().isEmpty() && sessionNameFields[i].getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(frame, "Session name is required if duration is provided.", "Save Routine Failed", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    if (!sessionNameFields[i].getText().isEmpty() && isNaturalNumber(sessionDurationFields[i].getText())) {
+                        String sessionName = sessionNameFields[i].getText();
+                        int sessionDuration = Integer.parseInt(sessionDurationFields[i].getText());
+                        newRoutine.addSession(new Session(sessionName, sessionDuration));
+                    }
+                }
+                addRoutine(newRoutine);
+                JOptionPane.showMessageDialog(frame, "Routine added successfully.");
+                cardLayout.show(frame.getContentPane(), "Main");
+            }
+        });
+
+        backButton1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(frame.getContentPane(), "Main");
+            }
+        });
+
         editRoutineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String editName = JOptionPane.showInputDialog(frame, "Enter Routine Name to Edit:");
+                if (editName == null || editName.isEmpty()) {
+                    return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+                }
+
                 Routine routineToEdit = null;
                 for (Routine routine : routines) {
                     if (routine.getName().equals(editName)) {
@@ -325,6 +369,9 @@ public class MiracleMorningSupporter {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String deleteName = JOptionPane.showInputDialog(frame, "Enter Routine Name to Delete:");
+                if (deleteName == null || deleteName.isEmpty()) {
+                    return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+                }
                 deleteRoutine(deleteName);
             }
         });
@@ -367,26 +414,6 @@ public class MiracleMorningSupporter {
             }
         });
 
-        saveRoutineButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String name = routineNameField.getText();
-                Routine newRoutine = new Routine(name);
-                JTextField[] sessionNameFields = { session1NameField, session2NameField, session3NameField, session4NameField, session5NameField };
-                JTextField[] sessionDurationFields = { session1DurationField, session2DurationField, session3DurationField, session4DurationField, session5DurationField };
-                for (int i = 0; i < sessionNameFields.length; i++) {
-                    if (!sessionNameFields[i].getText().isEmpty() && isNaturalNumber(sessionDurationFields[i].getText())) {
-                        String sessionName = sessionNameFields[i].getText();
-                        int sessionDuration = Integer.parseInt(sessionDurationFields[i].getText());
-                        newRoutine.addSession(new Session(sessionName, sessionDuration));
-                    }
-                }
-                addRoutine(newRoutine);
-                JOptionPane.showMessageDialog(frame, "Routine added successfully.");
-                cardLayout.show(frame.getContentPane(), "Main");
-            }
-        });
-
         saveEditRoutineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -402,13 +429,6 @@ public class MiracleMorningSupporter {
                     }
                 }
                 editRoutine(name, newRoutine);
-                cardLayout.show(frame.getContentPane(), "Main");
-            }
-        });
-
-        backButton1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
                 cardLayout.show(frame.getContentPane(), "Main");
             }
         });
@@ -466,6 +486,9 @@ public class MiracleMorningSupporter {
         JButton button = new JButton(text);
         button.setBackground(Color.WHITE);
         button.setPreferredSize(new Dimension(120, 40));
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         return button;
     }
 
