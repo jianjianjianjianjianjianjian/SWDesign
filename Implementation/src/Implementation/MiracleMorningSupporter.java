@@ -34,6 +34,12 @@ public class MiracleMorningSupporter {
     }
 
     public void addRoutine(Routine routine) {
+        for (Routine existingRoutine : routines) {
+            if (existingRoutine.getName().equals(routine.getName())) {
+                JOptionPane.showMessageDialog(frame, "Routine name already exists. Please choose a different name.", "Save Routine Failed", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
         routines.add(routine);
     }
 
@@ -69,7 +75,7 @@ public class MiracleMorningSupporter {
 
     public void runRoutine(String routineName) {
         if (routineName == null || routineName.isEmpty()) {
-            return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+            return;
         }
 
         for (Routine routine : routines) {
@@ -80,6 +86,7 @@ public class MiracleMorningSupporter {
                 List<Session> sessions = routine.getSessions();
                 cardLayout.show(frame.getContentPane(), "RunRoutine");
                 runSessionsSequentially(sessions, 0);
+                musicPlayer.turnOn();
                 return;
             }
         }
@@ -94,7 +101,7 @@ public class MiracleMorningSupporter {
             timer.setTimer(session.getDuration());
             timer.start(() -> runSessionsSequentially(sessions, index + 1));
             currentSessionIndex = index;
-
+    
             // Update the remaining time on the UI
             if (updateTimer != null) {
                 updateTimer.cancel();
@@ -113,6 +120,7 @@ public class MiracleMorningSupporter {
             JOptionPane.showMessageDialog(frame, "All sessions completed!");
             history.addSuccess(new Date());
             System.out.println("All sessions completed.");
+            musicPlayer.turnOff();
             cardLayout.show(frame.getContentPane(), "Main");
             routineRunning = false;
             if (updateTimer != null) {
@@ -146,7 +154,7 @@ public class MiracleMorningSupporter {
         JTextArea textArea = new JTextArea();
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(800, 300)); // 텍스트 영역 크기 확대
+        scrollPane.setPreferredSize(new Dimension(800, 300));
 
         mainPanel.setLayout(new BorderLayout());
         JPanel buttonPanel = new JPanel();
@@ -168,11 +176,11 @@ public class MiracleMorningSupporter {
         buttonPanel.add(viewSuccessHistoryButton);
         buttonPanel.add(exitButton);
 
-        mainPanel.add(buttonPanel, BorderLayout.NORTH); // 버튼 패널을 위쪽으로 이동
-        mainPanel.add(scrollPane, BorderLayout.CENTER); // 텍스트 영역을 가운데로 이동
+        mainPanel.add(buttonPanel, BorderLayout.NORTH);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
 
         // Add Routine Panel
-        addRoutinePanel.setLayout(new GridLayout(12, 1, 10, 10)); // 기본 레이아웃으로 변경
+        addRoutinePanel.setLayout(new GridLayout(12, 1, 10, 10));
         JTextField routineNameField = new JTextField();
         JTextField session1NameField = new JTextField();
         JTextField session1DurationField = new JTextField();
@@ -213,7 +221,7 @@ public class MiracleMorningSupporter {
         addRoutinePanel.add(backButton1);
 
         // Edit Routine Panel
-        editRoutinePanel.setLayout(new GridLayout(7, 2, 10, 10)); // 레이아웃 행 수 조정
+        editRoutinePanel.setLayout(new GridLayout(12, 1, 10, 10)); // 기본 레이아웃으로 변경
         JTextField editRoutineNameField = new JTextField();
         JTextField editSession1NameField = new JTextField();
         JTextField editSession1DurationField = new JTextField();
@@ -231,24 +239,24 @@ public class MiracleMorningSupporter {
         editRoutinePanel.add(new JLabel("Routine Name"));
         editRoutinePanel.add(editRoutineNameField);
         editRoutinePanel.add(new JLabel("Session 1 Name"));
-        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession1NameField);
+        editRoutinePanel.add(new JLabel("Session 1 Duration (seconds)"));
         editRoutinePanel.add(editSession1DurationField);
         editRoutinePanel.add(new JLabel("Session 2 Name"));
-        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession2NameField);
+        editRoutinePanel.add(new JLabel("Session 2 Duration (seconds)"));
         editRoutinePanel.add(editSession2DurationField);
         editRoutinePanel.add(new JLabel("Session 3 Name"));
-        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession3NameField);
+        editRoutinePanel.add(new JLabel("Session 3 Duration (seconds)"));
         editRoutinePanel.add(editSession3DurationField);
         editRoutinePanel.add(new JLabel("Session 4 Name"));
-        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession4NameField);
+        editRoutinePanel.add(new JLabel("Session 4 Duration (seconds)"));
         editRoutinePanel.add(editSession4DurationField);
         editRoutinePanel.add(new JLabel("Session 5 Name"));
-        editRoutinePanel.add(new JLabel("Duration (seconds)"));
         editRoutinePanel.add(editSession5NameField);
+        editRoutinePanel.add(new JLabel("Session 5 Duration (seconds)"));
         editRoutinePanel.add(editSession5DurationField);
         editRoutinePanel.add(saveEditRoutineButton);
         editRoutinePanel.add(backButton3);
@@ -305,7 +313,7 @@ public class MiracleMorningSupporter {
                     JOptionPane.showMessageDialog(frame, "Routine name is required.", "Save Routine Failed", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
+        
                 Routine newRoutine = new Routine(name);
                 JTextField[] sessionNameFields = { session1NameField, session2NameField, session3NameField, session4NameField, session5NameField };
                 JTextField[] sessionDurationFields = { session1DurationField, session2DurationField, session3DurationField, session4DurationField, session5DurationField };
@@ -320,9 +328,12 @@ public class MiracleMorningSupporter {
                         newRoutine.addSession(new Session(sessionName, sessionDuration));
                     }
                 }
+                
                 addRoutine(newRoutine);
-                JOptionPane.showMessageDialog(frame, "Routine added successfully.");
-                cardLayout.show(frame.getContentPane(), "Main");
+                if (routines.contains(newRoutine)) {
+                    JOptionPane.showMessageDialog(frame, "Routine added successfully.");
+                    cardLayout.show(frame.getContentPane(), "Main");
+                }
             }
         });
 
@@ -338,7 +349,7 @@ public class MiracleMorningSupporter {
             public void actionPerformed(ActionEvent e) {
                 String editName = JOptionPane.showInputDialog(frame, "Enter Routine Name to Edit:");
                 if (editName == null || editName.isEmpty()) {
-                    return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+                    return;
                 }
 
                 Routine routineToEdit = null;
@@ -370,7 +381,7 @@ public class MiracleMorningSupporter {
             public void actionPerformed(ActionEvent e) {
                 String deleteName = JOptionPane.showInputDialog(frame, "Enter Routine Name to Delete:");
                 if (deleteName == null || deleteName.isEmpty()) {
-                    return; // 취소 버튼을 누르면 아무 메시지도 표시하지 않고 취소
+                    return;
                 }
                 deleteRoutine(deleteName);
             }
@@ -394,8 +405,6 @@ public class MiracleMorningSupporter {
         playMusicButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String trackUrl = JOptionPane.showInputDialog(frame, "Enter Track URL:");
-                musicPlayer.setTrack(trackUrl);
                 musicPlayer.turnOn();
             }
         });
